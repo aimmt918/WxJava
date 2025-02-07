@@ -295,10 +295,6 @@ public class WxPayConfig {
     }
     try {
       if (merchantPrivateKey == null) {
-        if (StringUtils.isNotBlank(this.getPrivateKeyString())) {
-          this.setPrivateKeyString(Base64.getEncoder().encodeToString(this.getPrivateKeyString().getBytes()));
-        }
-
         try (InputStream keyInputStream = this.loadConfigInputStream(this.getPrivateKeyString(), this.getPrivateKeyPath(),
           this.privateKeyContent, "privateKeyPath")) {
           merchantPrivateKey = PemUtils.loadPrivateKey(keyInputStream);
@@ -376,7 +372,7 @@ public class WxPayConfig {
     if (configContent != null) {
       inputStream = new ByteArrayInputStream(configContent);
     } else if (StringUtils.isNotEmpty(configString)) {
-      configContent = configString.getBytes(StandardCharsets.UTF_8);
+      configContent = Base64.getDecoder().decode(configString);
       inputStream = new ByteArrayInputStream(configContent);
     } else {
       if (StringUtils.isBlank(configPath)) {
@@ -449,7 +445,8 @@ public class WxPayConfig {
    */
   private Object[] p12ToPem() {
     String key = getMchId();
-    if (StringUtils.isBlank(key) || StringUtils.isBlank(this.getKeyPath())) {
+    if (StringUtils.isBlank(key) ||
+      (StringUtils.isBlank(this.getKeyPath()) && this.keyContent == null && StringUtils.isBlank(this.keyString))) {
       return null;
     }
 
